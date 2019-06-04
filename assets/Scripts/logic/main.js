@@ -12,7 +12,8 @@ const COLOR     = cc.Enum( {
 const ROW       = 10,
       COL       = 10,
       ROW_SPEED = 500,
-      COL_SPEED = 500;
+      COL_SPEED = 500,
+      LEAST_NUM = 2;
 cc.Class( {
     extends : Script,
 
@@ -204,9 +205,14 @@ cc.Class( {
             blockList         = this.blockList,
             colorList         = this.colorList,
             relevantBlockList = this.getRelevantBlock( _row, _col ),
+            i                 = 0,
+            len               = relevantBlockList.length,
             relevantBlock, row, col;
         // relevantBlockList.length 消除的数量
-        for ( var i = 0, len = relevantBlockList.length; i < len; i++ ) {
+        if ( len < LEAST_NUM ) {
+            return;
+        }
+        for ( ; i < len; i++ ) {
             relevantBlock = relevantBlockList[ i ];
             row           = relevantBlock.row;
             col           = relevantBlock.col;
@@ -216,7 +222,31 @@ cc.Class( {
             relevantBlock           = null;
         }
         this.updateAllBlock();
+        this.isGameOver();
+    },
 
+    isGameOver () {
+        var blockList        = this.blockList,
+            getRelevantBlock = this.getRelevantBlock.bind( this ),
+            row              = 0,
+            col              = 0;
+        for ( ; row < ROW; row++ ) {
+            for ( col = 0; col < COL; col++ ) {
+                if ( blockList[ row ][ col ] ) {
+                    var len = getRelevantBlock( row, col );
+                    if ( len.length >= LEAST_NUM ) {
+                        return;
+                    }
+                }
+            }
+        }
+        this.gameOver();
+    },
+
+    gameOver () {
+        Global.tips( '游戏结束' );
+        var blockInputEventsNode    = cc.find( 'Canvas/blockInputEventsNode' );
+        blockInputEventsNode.active = true;
     },
 
     /**
